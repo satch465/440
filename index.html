@@ -22,12 +22,12 @@ body{margin:0;font:14px/1.4 -apple-system,system-ui,sans-serif}
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,600..900&family=Hanken+Grotesk:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: a tela inteira é o painel; no meio, uma janela cavada com o alvo em cima (menor) e onde você está embaixo (maior); embaixo, as cordas do instrumento; ajustes no canto superior direito. Visual Braun, abre no claro. */
+/* Layout: painel inteiro, sem janela; o alvo em cima (menor) e onde você está no meio (enorme, condensado); embaixo, as cordas; ajustes no canto superior direito. Visual Braun, abre no claro. */
 :root {
   --panel: #E3DECD; --poco: #DFDAC8; --ink: #23211C; --ink-2: #6A6555; --line: #C4BDA8;
-  --accent: #DC5019; --luz: #FFC66E; --luz-forca: 62%; --num-afinado: #DC5019; --alvo-afinado: #23211C;
+  --accent: #DC5019; --num-afinado: #C9960C; /* afinado no claro: amarelo mostarda */
   --shade: rgba(70,60,40,.40); --glow: rgba(255,255,255,.80); --veu: rgba(0,0,0,.28);
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-body: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
@@ -37,21 +37,22 @@ body{margin:0;font:14px/1.4 -apple-system,system-ui,sans-serif}
 /* o tema é do próprio app (data-tema), não segue o escuro do aparelho */
 :root[data-tema="escuro"] {
   --panel: #3C4149; --poco: #353A42; --ink: #E8EAEC; --ink-2: #A1A7AF; --line: #2A2E35;
-  --accent: #E3BE3F; --luz: #F2B84B; --luz-forca: 92%; --num-afinado: #1B1E23; --alvo-afinado: #1B1E23;
+  --accent: #E3BE3F; --num-afinado: #6BD48B; /* afinado no escuro: verde */
   --shade: rgba(10,12,16,.55); --glow: rgba(255,255,255,.07); --veu: rgba(0,0,0,.45);
   color-scheme: dark;
 }
 [hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
-body { background: var(--panel); color: var(--ink); font-family: var(--f-body); -webkit-tap-highlight-color: transparent; transition: background .3s ease, color .3s ease; }
+body { background: var(--panel); color: var(--ink); font-family: var(--f-body); -webkit-tap-highlight-color: transparent; }
 * { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 
 .painel {
   box-sizing: border-box; height: 100%; display: grid; place-items: center; position: relative;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 64px 48px;
+  padding-block: 72px 52px;
 }
-.conjunto { width: min(100%, 420px); display: grid; gap: 28px; justify-items: stretch; }
+.conjunto { width: min(100%, 600px); height: 100%; display: grid; align-content: center; gap: 28px; justify-items: stretch; }
+.cordas { width: min(100%, 420px); justify-self: center; }
 
 /* botão de ajustes: tecla redonda em relevo no canto superior direito */
 .btn-ajustes {
@@ -66,37 +67,24 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
 .btn-ajustes:active span { box-shadow: inset 3px 3px 7px var(--shade), inset -3px -3px 7px var(--glow); }
 .btn-ajustes svg { width: 20px; height: 20px; }
 
-/* janela cavada no painel, como o display do Nedle */
-.janela {
-  position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 26px; overflow: hidden;
-  background: var(--poco);
-  box-shadow: inset 6px 7px 14px var(--shade), inset -5px -6px 12px var(--glow);
-  display: grid; place-content: center; justify-items: center; gap: 14px; container-type: inline-size;
-  transition: background .3s ease;
-}
-/* lâmpada quente que acende quando afina */
-.janela::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  /* afinou: a janela inteira acende de uma vez, cor chapada, sem degradê nem transição */
-  background: color-mix(in srgb, var(--luz) var(--luz-forca), transparent);
-  opacity: 0;
-}
-.janela.afinado::before { opacity: 1; }
-
-.num { position: relative; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1; transition: opacity .35s ease; }
-/* o "Hz" fica fora da conta do centro: os dois números centram pelos algarismos */
-/* alvo: nome da nota, número e Hz centrados juntos */
-.num.alvo small, .num.atual small { position: static; margin-left: .4em; }
-.alvo .nome { position: static; margin-right: .3em; font-size: 1.5em; font-family: var(--f-display); font-weight: 600; letter-spacing: -.02em; color: var(--ink); line-height: 1; }
-.alvo .nome sub { font-family: var(--f-mono); font-weight: 500; font-size: .42em; vertical-align: baseline; margin-left: .05em; color: var(--ink-2); }
-.num small { position: absolute; left: 100%; bottom: .12em; font-family: var(--f-mono); font-weight: 500; font-size: 13px; letter-spacing: .04em; color: var(--ink-2); margin-left: .4em; line-height: 1; }
-/* números no dobro do tamanho, limitados à largura da janela */
-.alvo { font-family: var(--f-mono); font-weight: 500; font-size: min(68px, 12.5cqw); letter-spacing: .02em; color: var(--ink-2); }
-.atual { font-family: var(--f-display); font-weight: 600; font-size: min(192px, 29cqw); letter-spacing: -.03em; color: var(--ink); }
-.janela.afinado .atual { color: var(--num-afinado); }
+/* sem janela: os números ficam soltos no painel, grandes, em Archivo bem condensado.
+   A parte inteira é enorme; a casa decimal fica pequena no alto, com o Hz embaixo dela, como um preço de vitrine. */
+.janela { position: relative; width: 100%; display: grid; justify-items: center; align-content: center; gap: 4px; container-type: inline-size; }
+.num { position: relative; display: flex; align-items: flex-start; white-space: nowrap; line-height: .8; font-variant-numeric: tabular-nums; transition: opacity .35s ease; }
+.num .int { font-family: var(--f-display); font-weight: 800; font-stretch: 100%; letter-spacing: -.045em; }
+.num .lado { display: grid; align-content: space-between; align-self: stretch; margin-left: .04em; }
+.num .dec { font-family: var(--f-display); font-weight: 800; font-stretch: 100%; font-size: .42em; line-height: .8; letter-spacing: -.03em; }
+.num small { font-family: var(--f-mono); font-weight: 500; font-size: 14px; letter-spacing: .04em; color: var(--ink-2); line-height: 1; padding-left: .2em; }
+.atual { font-size: min(300px, 46cqw); color: var(--ink); }
+.atual.longo { font-size: min(240px, 36cqw); }
+.alvo { font-size: min(130px, 21cqw); color: var(--ink-2); align-items: flex-end; }
+.alvo .nome { font-family: var(--f-display); font-weight: 800; font-stretch: 100%; font-size: .8em; line-height: .8; letter-spacing: -.03em; color: var(--ink); margin-right: .16em; align-self: flex-end; }
+.alvo .nome sub { font-family: var(--f-mono); font-weight: 500; font-size: .3em; vertical-align: baseline; margin-left: .04em; color: var(--ink-2); }
+.alvo .lado { align-self: stretch; }
+/* afinou: a tela inteira acende de uma vez, sem fade */
+/* afinou: só os números mudam de cor, na hora */
+.janela.afinado .atual, .janela.afinado .alvo .int, .janela.afinado .alvo .dec { color: var(--num-afinado); }
 .janela.afinado .num { transition: none; }
-.janela.afinado .alvo, .janela.afinado .alvo .nome { color: var(--alvo-afinado); }
-.janela.afinado small, .janela.afinado sub { color: var(--alvo-afinado) !important; opacity: .7; }
 .janela.parado .num { opacity: .45; }
 .janela.afinado.parado .num { opacity: 1; } /* afinou e a corda parou: continua aceso */
 
@@ -139,7 +127,6 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
 .gaveta h2 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 22px; letter-spacing: -.02em; }
 .campo { display: grid; gap: 8px; }
 .rotulo { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
-.dica { font-size: 13px; color: var(--ink-2); margin: -2px 0 0; }
 
 /* claro / escuro: duas teclas lado a lado */
 .par { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -209,7 +196,6 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
       <output id="ref-saida" aria-live="polite"><b id="ref-num">440</b><small>Hz</small></output>
       <button class="tecla" id="ref-mais" aria-label="Aumentar referência">+</button>
     </div>
-    <p class="dica">Padrão 440 · toque e segure para ir mais rápido</p>
   </div>
 
   <div class="campo">
@@ -340,7 +326,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
   try { Object.assign(cfg, JSON.parse(localStorage.getItem("alvo-ajustes") || "{}")); } catch (e) {}
   if (!INSTRUMENTOS[cfg.inst]) cfg.inst = 0;
   if (!INSTRUMENTOS[cfg.inst].afin[cfg.afin]) cfg.afin = 0;
-  cfg.ref = Math.max(415, Math.min(466, Math.round(cfg.ref) || 440));
+  cfg.ref = Math.max(435, Math.min(445, Math.round(cfg.ref) || 440)); // 5 Hz para cada lado do 440
   const salvar = () => { try { localStorage.setItem("alvo-ajustes", JSON.stringify(cfg)); } catch (e) {} };
 
   // ---- o mesmo motor do Nedle: McLeod (NSDF) com interpolação, mediana, histerese de nota e faixa de afinado de ±3 cents ----
@@ -429,7 +415,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
     const dentroDoClaude = window.self !== window.top; // no artefato o microfone é bloqueado
     try { await ligarMicrofone(); }
     catch (e) {
-      if (dentroDoClaude || e.name === "SemMicrofone") { modo = "demo"; aviso("Demonstração · o microfone funciona na versão web"); }
+      if (dentroDoClaude || e.name === "SemMicrofone") { modo = "demo"; }
       else if (e.name === "NotAllowedError") { modo = "bloqueado"; aviso("Microfone bloqueado. Libere em Ajustes › Safari › Microfone"); }
       else { modo = "toque"; aviso("Toque na tela para ligar o microfone"); }
     }
@@ -498,10 +484,15 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
     try { tatil.click(); } catch (e) {}
   }
 
+  // número em duas partes: inteira grande, decimal pequena no alto com o Hz embaixo
+  function partes(hz) {
+    const [i, d] = fmt(hz).split(",");
+    return `<span class="int">${i}</span><span class="lado"><span class="dec">,${d}</span><small>Hz</small></span>`;
+  }
   // alvo: nome da nota (com a oitava pequena) antes do número
   function alvoHtml(m) {
     const nome = travada !== null && cordas[travada].midi === m ? cordas[travada].rotulo : NOMES[((m % 12) + 12) % 12];
-    return `<span class="nome">${nome}<sub>${Math.floor(m / 12) - 1}</sub></span>${fmt(hzDe(m))}<small>Hz</small>`;
+    return `<span class="nome">${nome}<sub>${Math.floor(m / 12) - 1}</sub></span>${partes(hzDe(m))}`;
   }
   // ---- o número de baixo anda com peso (como a agulha), para os décimos não piscarem ----
   let mostrado = null, notaMostrada = null, ultimo = performance.now(), ultimoTexto = 0;
@@ -537,7 +528,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
       if (agora - ultimoTexto > 66) { // até 15 trocas por segundo
         ultimoTexto = agora;
         elAlvo.innerHTML = alvoHtml(alvoM);
-        elAtual.innerHTML = `${fmt(hzDe(mostrado))}<small>Hz</small>`;
+        const hzA = hzDe(mostrado); elAtual.classList.toggle("longo", hzA >= 999.95); elAtual.innerHTML = partes(hzA);
       }
     }
     requestAnimationFrame(passo);
@@ -564,7 +555,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
   document.querySelectorAll(".tecla[data-tema]").forEach(b => b.addEventListener("click", () => { cfg.tema = b.dataset.tema; aplicarTema(); salvar(); }));
 
   const refNum = document.getElementById("ref-num");
-  function mudarRef(d) { cfg.ref = Math.max(415, Math.min(466, cfg.ref + d)); refNum.textContent = cfg.ref; salvar(); }
+  function mudarRef(d) { cfg.ref = Math.max(435, Math.min(445, cfg.ref + d)); refNum.textContent = cfg.ref; salvar(); }
   // toque muda 1 Hz; segurando, repete
   [["ref-menos", -1], ["ref-mais", 1]].forEach(([id, d]) => {
     const b = document.getElementById(id); let t1 = null, t2 = null, ultimo = 0;
