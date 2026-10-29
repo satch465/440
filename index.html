@@ -27,7 +27,7 @@ body{margin:0;font:14px/1.4 -apple-system,system-ui,sans-serif}
 /* Layout: a tela inteira é o painel; no meio, uma janela cavada com o alvo em cima (menor) e onde você está embaixo (maior); embaixo, as cordas do instrumento; ajustes no canto superior direito. Visual Braun, abre no claro. */
 :root {
   --panel: #E3DECD; --poco: #DFDAC8; --ink: #23211C; --ink-2: #6A6555; --line: #C4BDA8;
-  --accent: #DC5019; --luz: #FFC66E; --luz-forca: 62%;
+  --accent: #DC5019; --luz: #FFC66E; --luz-forca: 62%; --num-afinado: #DC5019; --alvo-afinado: #23211C;
   --shade: rgba(70,60,40,.40); --glow: rgba(255,255,255,.80); --veu: rgba(0,0,0,.28);
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-body: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
@@ -37,7 +37,7 @@ body{margin:0;font:14px/1.4 -apple-system,system-ui,sans-serif}
 /* o tema é do próprio app (data-tema), não segue o escuro do aparelho */
 :root[data-tema="escuro"] {
   --panel: #3C4149; --poco: #353A42; --ink: #E8EAEC; --ink-2: #A1A7AF; --line: #2A2E35;
-  --accent: #E3BE3F; --luz: #FFB955; --luz-forca: 48%;
+  --accent: #E3BE3F; --luz: #F2B84B; --luz-forca: 92%; --num-afinado: #1B1E23; --alvo-afinado: #1B1E23;
   --shade: rgba(10,12,16,.55); --glow: rgba(255,255,255,.07); --veu: rgba(0,0,0,.45);
   color-scheme: dark;
 }
@@ -77,12 +77,13 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
 /* lâmpada quente que acende quando afina */
 .janela::before {
   content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--luz) var(--luz-forca), transparent) 0%, color-mix(in srgb, var(--luz) 26%, transparent) 55%, transparent 100%);
-  opacity: 0; transition: opacity .25s ease-out;
+  /* afinou: a janela inteira acende de uma vez, cor chapada, sem degradê nem transição */
+  background: color-mix(in srgb, var(--luz) var(--luz-forca), transparent);
+  opacity: 0;
 }
 .janela.afinado::before { opacity: 1; }
 
-.num { position: relative; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1; transition: color .2s ease, opacity .35s ease, text-shadow .25s ease; }
+.num { position: relative; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1; transition: opacity .35s ease; }
 /* o "Hz" fica fora da conta do centro: os dois números centram pelos algarismos */
 /* alvo: nome da nota, número e Hz centrados juntos */
 .num.alvo small, .num.atual small { position: static; margin-left: .4em; }
@@ -92,8 +93,10 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
 /* números no dobro do tamanho, limitados à largura da janela */
 .alvo { font-family: var(--f-mono); font-weight: 500; font-size: min(68px, 12.5cqw); letter-spacing: .02em; color: var(--ink-2); }
 .atual { font-family: var(--f-display); font-weight: 600; font-size: min(192px, 29cqw); letter-spacing: -.03em; color: var(--ink); }
-.janela.afinado .atual { color: var(--accent); text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent); }
-.janela.afinado .alvo { color: var(--ink); }
+.janela.afinado .atual { color: var(--num-afinado); }
+.janela.afinado .num { transition: none; }
+.janela.afinado .alvo, .janela.afinado .alvo .nome { color: var(--alvo-afinado); }
+.janela.afinado small, .janela.afinado sub { color: var(--alvo-afinado) !important; opacity: .7; }
 .janela.parado .num { opacity: .45; }
 .janela.afinado.parado .num { opacity: 1; } /* afinou e a corda parou: continua aceso */
 
