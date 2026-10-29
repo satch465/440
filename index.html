@@ -71,7 +71,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
   position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 26px; overflow: hidden;
   background: var(--poco);
   box-shadow: inset 6px 7px 14px var(--shade), inset -5px -6px 12px var(--glow);
-  display: grid; place-content: center; justify-items: center; gap: 6px;
+  display: grid; place-content: center; justify-items: center; gap: 14px; container-type: inline-size;
   transition: background .3s ease;
 }
 /* lâmpada quente que acende quando afina */
@@ -81,13 +81,16 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
   opacity: 0; transition: opacity .25s ease-out;
 }
 .janela.afinado::before { opacity: 1; }
-.instr { position: absolute; top: 16px; left: 0; right: 0; text-align: center; font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); opacity: .8; }
 
 .num { position: relative; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1; transition: color .2s ease, opacity .35s ease, text-shadow .25s ease; }
 /* o "Hz" fica fora da conta do centro: os dois números centram pelos algarismos */
+/* nome da nota do alvo, à esquerda, fora da conta do centro */
+.alvo .nome { position: absolute; right: 100%; bottom: 0; margin-right: .35em; font-family: var(--f-display); font-weight: 600; letter-spacing: -.02em; color: var(--ink); line-height: 1; }
+.alvo .nome sub { font-family: var(--f-mono); font-weight: 500; font-size: .42em; vertical-align: baseline; margin-left: .05em; color: var(--ink-2); }
 .num small { position: absolute; left: 100%; bottom: .12em; font-family: var(--f-mono); font-weight: 500; font-size: 13px; letter-spacing: .04em; color: var(--ink-2); margin-left: .4em; line-height: 1; }
-.alvo { font-family: var(--f-mono); font-weight: 500; font-size: clamp(26px, 8vw, 34px); letter-spacing: .02em; color: var(--ink-2); }
-.atual { font-family: var(--f-display); font-weight: 600; font-size: clamp(64px, 21vw, 96px); letter-spacing: -.03em; color: var(--ink); }
+/* números no dobro do tamanho, limitados à largura da janela */
+.alvo { font-family: var(--f-mono); font-weight: 500; font-size: min(68px, 12.5cqw); letter-spacing: .02em; color: var(--ink-2); }
+.atual { font-family: var(--f-display); font-weight: 600; font-size: min(192px, 29cqw); letter-spacing: -.03em; color: var(--ink); }
 .janela.afinado .atual { color: var(--accent); text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent); }
 .janela.afinado .alvo { color: var(--ink); }
 .janela.parado .num { opacity: .45; }
@@ -174,7 +177,6 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
   </button>
   <div class="conjunto">
     <div class="janela" id="janela" role="status" aria-live="off" aria-label="Afinador">
-      <div class="instr" id="instr"></div>
       <div class="num alvo" id="alvo">—</div>
       <div class="num atual" id="atual">—</div>
     </div>
@@ -325,6 +327,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
   ];
   const PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
   const midiDe = s => { const m = /^([A-G])([#b]?)(-?\d)$/.exec(s); return 12 * (+m[3] + 1) + PC[m[1]] + (m[2] === "#" ? 1 : m[2] === "b" ? -1 : 0); };
+  const NOMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
   const rotuloDe = s => s.replace(/-?\d$/, "").replace("#", "♯").replace("b", "♭");
 
   // ---- ajustes guardados neste aparelho ----
@@ -437,12 +440,12 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
   document.addEventListener("contextmenu", e => e.preventDefault());
 
   // ---- cordas do instrumento escolhido; com uma escolhida, o alvo fica travado nela; sem nenhuma, é cromático ----
-  const elCordas = document.getElementById("cordas"), elInstr = document.getElementById("instr");
+  const elCordas = document.getElementById("cordas");
   let cordas = [];       // [{midi, rotulo}]
   let travada = null;    // índice da corda travada
   let ultimoToque = 0;
   function montarCordas() {
-    const [nomeAfin, notas] = INSTRUMENTOS[cfg.inst].afin[cfg.afin];
+    const [, notas] = INSTRUMENTOS[cfg.inst].afin[cfg.afin];
     cordas = notas.split(" ").map(s => ({ midi: midiDe(s), rotulo: rotuloDe(s), nome: s }));
     // o detector desce até a corda mais grave
     F_MIN = Math.min(38, ...cordas.map(c => 440 * Math.pow(2, (c.midi - 69) / 12) * 0.85));
@@ -460,7 +463,6 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
       });
       return b;
     }));
-    elInstr.textContent = `${INSTRUMENTOS[cfg.inst].nome.split(" · ")[0]} · ${nomeAfin}`;
     travar(null);
   }
   function travar(i) {
@@ -492,6 +494,11 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
     try { tatil.click(); } catch (e) {}
   }
 
+  // alvo: nome da nota (com a oitava pequena) antes do número
+  function alvoHtml(m) {
+    const nome = travada !== null && cordas[travada].midi === m ? cordas[travada].rotulo : NOMES[((m % 12) + 12) % 12];
+    return `<span class="nome">${nome}<sub>${Math.floor(m / 12) - 1}</sub></span>${fmt(hzDe(m))}<small>Hz</small>`;
+  }
   // ---- o número de baixo anda com peso (como a agulha), para os décimos não piscarem ----
   let mostrado = null, notaMostrada = null, ultimo = performance.now(), ultimoTexto = 0;
   let afinadoDesde = null, foraDesde = null, firmeAntes = false;
@@ -502,7 +509,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
 
     if (travada !== null && (notaMidi === null || mSuave === null)) {
       // corda escolhida e nada tocado ainda: o alvo já aparece
-      elAlvo.innerHTML = `${fmt(hzDe(cordas[travada].midi))}<small>Hz</small>`;
+      elAlvo.innerHTML = alvoHtml(cordas[travada].midi);
       elAtual.textContent = "—";
       janelaEl.classList.remove("afinado"); janelaEl.classList.add("parado");
     }
@@ -525,7 +532,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
       janelaEl.classList.toggle("parado", parado);
       if (agora - ultimoTexto > 66) { // até 15 trocas por segundo
         ultimoTexto = agora;
-        elAlvo.innerHTML = `${fmt(hzDe(alvoM))}<small>Hz</small>`;
+        elAlvo.innerHTML = alvoHtml(alvoM);
         elAtual.innerHTML = `${fmt(hzDe(mostrado))}<small>Hz</small>`;
       }
     }
