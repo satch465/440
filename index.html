@@ -22,41 +22,66 @@ body{margin:0;font:14px/1.4 -apple-system,system-ui,sans-serif}
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: a tela inteira é o painel; no meio, uma janela cavada com o alvo em cima (menor) e onde você está embaixo (maior). Visual Braun claro, uma cor de destaque. */
+/* Layout: a tela inteira é o painel; no meio, uma janela cavada com o alvo em cima (menor) e onde você está embaixo (maior); embaixo, as cordas do instrumento; ajustes no canto superior direito. Visual Braun, abre no claro. */
 :root {
-  --panel: #E3DECD; --poco: #DFDAC8; --ink: #23211C; --ink-2: #6A6555;
-  --accent: #DC5019; --luz: #FFC66E;
-  --shade: rgba(70,60,40,.40); --glow: rgba(255,255,255,.80);
+  --panel: #E3DECD; --poco: #DFDAC8; --ink: #23211C; --ink-2: #6A6555; --line: #C4BDA8;
+  --accent: #DC5019; --luz: #FFC66E; --luz-forca: 62%;
+  --shade: rgba(70,60,40,.40); --glow: rgba(255,255,255,.80); --veu: rgba(0,0,0,.28);
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
   color-scheme: light;
 }
+/* o tema é do próprio app (data-tema), não segue o escuro do aparelho */
+:root[data-tema="escuro"] {
+  --panel: #3C4149; --poco: #353A42; --ink: #E8EAEC; --ink-2: #A1A7AF; --line: #2A2E35;
+  --accent: #E3BE3F; --luz: #FFB955; --luz-forca: 48%;
+  --shade: rgba(10,12,16,.55); --glow: rgba(255,255,255,.07); --veu: rgba(0,0,0,.45);
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
-body { background: var(--panel); color: var(--ink); -webkit-tap-highlight-color: transparent; }
-* { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+body { background: var(--panel); color: var(--ink); font-family: var(--f-body); -webkit-tap-highlight-color: transparent; transition: background .3s ease, color .3s ease; }
+* { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 
 .painel {
   box-sizing: border-box; height: 100%; display: grid; place-items: center; position: relative;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 24px;
+  padding-block: 64px 48px;
 }
 .conjunto { width: min(100%, 420px); display: grid; gap: 28px; justify-items: stretch; }
+
+/* botão de ajustes: tecla redonda em relevo no canto superior direito */
+.btn-ajustes {
+  position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+  appearance: none; border: 0; padding: 0; background: transparent; cursor: pointer;
+  width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; z-index: 2;
+}
+.btn-ajustes span {
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--panel); color: var(--ink-2);
+  box-shadow: 4px 4px 9px var(--shade), -4px -4px 9px var(--glow); transition: box-shadow .12s ease;
+}
+.btn-ajustes:active span { box-shadow: inset 3px 3px 7px var(--shade), inset -3px -3px 7px var(--glow); }
+.btn-ajustes svg { width: 20px; height: 20px; }
+
 /* janela cavada no painel, como o display do Nedle */
 .janela {
   position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 26px; overflow: hidden;
   background: var(--poco);
   box-shadow: inset 6px 7px 14px var(--shade), inset -5px -6px 12px var(--glow);
   display: grid; place-content: center; justify-items: center; gap: 6px;
+  transition: background .3s ease;
 }
 /* lâmpada quente que acende quando afina */
 .janela::before {
   content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--luz) 62%, transparent) 0%, color-mix(in srgb, var(--luz) 26%, transparent) 55%, transparent 100%);
+  background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--luz) var(--luz-forca), transparent) 0%, color-mix(in srgb, var(--luz) 26%, transparent) 55%, transparent 100%);
   opacity: 0; transition: opacity .25s ease-out;
 }
 .janela.afinado::before { opacity: 1; }
+.instr { position: absolute; top: 16px; left: 0; right: 0; text-align: center; font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); opacity: .8; }
 
 .num { position: relative; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1; transition: color .2s ease, opacity .35s ease, text-shadow .25s ease; }
 /* o "Hz" fica fora da conta do centro: os dois números centram pelos algarismos */
@@ -69,20 +94,20 @@ body { background: var(--panel); color: var(--ink); -webkit-tap-highlight-color:
 .janela.afinado.parado .num { opacity: 1; } /* afinou e a corda parou: continua aceso */
 
 .aviso {
-  position: absolute; left: 0; right: 0; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  padding-inline: 24px; text-align: center; pointer-events: none;
+  position: absolute; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  padding-inline: 24px; text-align: center; pointer-events: none; margin: 0;
   font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; color: var(--ink-2); line-height: 1.4;
 }
 /* cordas: teclas redondas em relevo; tocar trava o alvo naquela corda, tocar de novo solta */
-.cordas { display: flex; justify-content: space-between; }
+.cordas { display: grid; grid-template-columns: repeat(var(--n, 6), minmax(0, 52px)); justify-content: space-between; }
 .corda {
   appearance: none; border: 0; padding: 0; background: transparent; cursor: pointer;
-  width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%;
+  width: 100%; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%;
 }
 .corda span {
-  width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+  width: 88%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
   background: var(--panel); color: var(--ink-2);
-  font-family: var(--f-mono); font-weight: 500; font-size: 17px; letter-spacing: .02em;
+  font-family: var(--f-mono); font-weight: 500; font-size: clamp(13px, 4.2vw, 17px); letter-spacing: 0;
   box-shadow: 4px 4px 9px var(--shade), -4px -4px 9px var(--glow);
   transition: box-shadow .12s ease, color .15s ease, transform .1s ease;
 }
@@ -91,36 +116,231 @@ body { background: var(--panel); color: var(--ink); -webkit-tap-highlight-color:
   color: var(--accent);
   box-shadow: inset 3px 3px 7px var(--shade), inset -3px -3px 7px var(--glow);
 }
-.corda:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.corda:focus-visible, .btn-ajustes:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* gaveta de ajustes */
+.veu { position: fixed; inset: 0; z-index: 9; background: var(--veu); }
+.gaveta {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--panel); color: var(--ink);
+  border-top: 1px solid var(--line); border-radius: 20px 20px 0 0;
+  padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px));
+  padding-block: 12px calc(24px + env(safe-area-inset-bottom, 0px));
+  display: grid; gap: 18px; max-height: 88vh; overflow-y: auto; touch-action: pan-y;
+}
+.gaveta > * { width: 100%; max-width: 440px; margin-inline: auto; }
+.alca { width: 40px; height: 4px; border-radius: 2px; background: var(--line); }
+.gaveta h2 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 22px; letter-spacing: -.02em; }
+.campo { display: grid; gap: 8px; }
+.rotulo { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.dica { font-size: 13px; color: var(--ink-2); margin: -2px 0 0; }
+
+/* claro / escuro: duas teclas lado a lado */
+.par { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tecla {
+  appearance: none; border: 0; cursor: pointer; min-height: 48px; border-radius: 14px;
+  background: var(--panel); color: var(--ink-2); font: 600 15px var(--f-body);
+  box-shadow: 4px 4px 9px var(--shade), -4px -4px 9px var(--glow); transition: box-shadow .12s ease, color .15s ease;
+}
+.tecla[aria-pressed="true"] { color: var(--accent); box-shadow: inset 3px 3px 7px var(--shade), inset -3px -3px 7px var(--glow); }
+
+/* referência: − 440 Hz + */
+.passo { display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; gap: 12px; }
+.passo output { text-align: center; font-family: var(--f-mono); font-size: 22px; font-variant-numeric: tabular-nums; }
+.passo output b { font-weight: 500; color: var(--ink); }
+.passo output small { font-size: 13px; color: var(--ink-2); margin-left: .3em; }
+.passo .tecla { font: 500 22px var(--f-mono); padding: 0; }
+
+/* listas suspensas: o seletor nativo do aparelho, com cara de tecla */
+.lista { position: relative; }
+.lista select {
+  appearance: none; -webkit-appearance: none; width: 100%; min-height: 48px; border: 0; border-radius: 14px; cursor: pointer;
+  padding: 0 44px 0 16px; background: var(--poco); color: var(--ink); font: 600 16px var(--f-body);
+  box-shadow: inset 3px 3px 7px var(--shade), inset -3px -3px 7px var(--glow);
+}
+.lista::after {
+  content: ""; position: absolute; right: 18px; top: 50%; width: 8px; height: 8px; margin-top: -6px; pointer-events: none;
+  border-right: 2px solid var(--ink-2); border-bottom: 2px solid var(--ink-2); transform: rotate(45deg);
+}
+.lista select:focus-visible, .tecla:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fechar { justify-self: stretch; }
+
+@media (max-height: 700px) { .painel { padding-block: 60px 36px; } .conjunto { gap: 20px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
 <main class="painel">
+  <button class="btn-ajustes" id="abrir" aria-label="Ajustes" aria-haspopup="dialog">
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68 1.65 1.65 0 0 0 10 3.17V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+  </button>
   <div class="conjunto">
     <div class="janela" id="janela" role="status" aria-live="off" aria-label="Afinador">
+      <div class="instr" id="instr"></div>
       <div class="num alvo" id="alvo">—</div>
       <div class="num atual" id="atual">—</div>
     </div>
-    <div class="cordas" role="group" aria-label="Corda a corda (sem nenhuma, afina qualquer nota)">
-      <button class="corda" data-midi="40" aria-pressed="false" aria-label="Mi grave, 6ª corda"><span>E</span></button>
-      <button class="corda" data-midi="45" aria-pressed="false" aria-label="Lá, 5ª corda"><span>A</span></button>
-      <button class="corda" data-midi="50" aria-pressed="false" aria-label="Ré, 4ª corda"><span>D</span></button>
-      <button class="corda" data-midi="55" aria-pressed="false" aria-label="Sol, 3ª corda"><span>G</span></button>
-      <button class="corda" data-midi="59" aria-pressed="false" aria-label="Si, 2ª corda"><span>B</span></button>
-      <button class="corda" data-midi="64" aria-pressed="false" aria-label="Mi agudo, 1ª corda"><span>E</span></button>
-    </div>
+    <div class="cordas" id="cordas" role="group" aria-label="Corda a corda (sem nenhuma, afina qualquer nota)"></div>
   </div>
   <p class="aviso" id="aviso" hidden></p>
 </main>
 
+<div class="veu" id="veu" hidden></div>
+<section class="gaveta" id="gaveta" role="dialog" aria-modal="true" aria-labelledby="titulo-ajustes" hidden>
+  <div class="alca"></div>
+  <h2 id="titulo-ajustes">Ajustes</h2>
+
+  <div class="campo">
+    <span class="rotulo" id="r-tema">Tema</span>
+    <div class="par" role="group" aria-labelledby="r-tema">
+      <button class="tecla" id="tema-claro" data-tema="claro" aria-pressed="true">Claro</button>
+      <button class="tecla" id="tema-escuro" data-tema="escuro" aria-pressed="false">Escuro</button>
+    </div>
+  </div>
+
+  <div class="campo">
+    <span class="rotulo" id="r-ref">Referência do Lá</span>
+    <div class="passo" role="group" aria-labelledby="r-ref">
+      <button class="tecla" id="ref-menos" aria-label="Diminuir referência">−</button>
+      <output id="ref-saida" aria-live="polite"><b id="ref-num">440</b><small>Hz</small></output>
+      <button class="tecla" id="ref-mais" aria-label="Aumentar referência">+</button>
+    </div>
+    <p class="dica">Padrão 440 · toque e segure para ir mais rápido</p>
+  </div>
+
+  <div class="campo">
+    <label class="rotulo" for="sel-inst">Instrumento</label>
+    <div class="lista"><select id="sel-inst"></select></div>
+  </div>
+
+  <div class="campo">
+    <label class="rotulo" for="sel-afin">Afinação</label>
+    <div class="lista"><select id="sel-afin"></select></div>
+  </div>
+
+  <button class="tecla fechar" id="fechar">Pronto</button>
+</section>
+
 <script>
 (() => {
-  // o mesmo motor do Nedle: McLeod (NSDF) com interpolação, mediana, histerese de nota e faixa de afinado de ±3 cents
-  const REF = 440;
-  const F_MIN = 38, F_MAX = 1400;
+  // ---- instrumentos e afinações (da corda mais grave para a mais aguda; nas cordas duplas, a nota principal de cada par) ----
+  const INSTRUMENTOS = [
+    { nome: "Violão / guitarra · 6 cordas", afin: [
+      ["Padrão", "E2 A2 D3 G3 B3 E4"],
+      ["Meio tom abaixo", "Eb2 Ab2 Db3 Gb3 Bb3 Eb4"],
+      ["Um tom abaixo", "D2 G2 C3 F3 A3 D4"],
+      ["Drop D", "D2 A2 D3 G3 B3 E4"],
+      ["Drop C#", "Db2 Ab2 Db3 Gb3 Bb3 Eb4"],
+      ["Drop C", "C2 G2 C3 F3 A3 D4"],
+      ["Drop B", "B1 F#2 B2 E3 G#3 C#4"],
+      ["Dó padrão", "C2 F2 Bb2 Eb3 G3 C4"],
+      ["Si padrão", "B1 E2 A2 D3 F#3 B3"],
+      ["DADGAD", "D2 A2 D3 G3 A3 D4"],
+      ["Open G", "D2 G2 D3 G3 B3 D4"],
+      ["Open D", "D2 A2 D3 F#3 A3 D4"],
+      ["Open E", "E2 B2 E3 G#3 B3 E4"],
+      ["Open A", "E2 A2 E3 A3 C#4 E4"],
+      ["Open C", "C2 G2 C3 G3 C4 E4"],
+      ["Open D menor", "D2 A2 D3 F3 A3 D4"],
+      ["Double Drop D", "D2 A2 D3 G3 B3 D4"],
+      ["Nashville", "E3 A3 D4 G4 B3 E4"]
+    ]},
+    { nome: "Violão / guitarra · 7 cordas", afin: [
+      ["Padrão (7ª em Si)", "B1 E2 A2 D3 G3 B3 E4"],
+      ["7ª em Dó (choro)", "C2 E2 A2 D3 G3 B3 E4"],
+      ["Drop A", "A1 E2 A2 D3 G3 B3 E4"],
+      ["Meio tom abaixo", "Bb1 Eb2 Ab2 Db3 Gb3 Bb3 Eb4"]
+    ]},
+    { nome: "Guitarra · 8 cordas", afin: [
+      ["Padrão", "F#1 B1 E2 A2 D3 G3 B3 E4"],
+      ["Drop E", "E1 B1 E2 A2 D3 G3 B3 E4"]
+    ]},
+    { nome: "Guitarra barítono", afin: [
+      ["Si", "B1 E2 A2 D3 F#3 B3"],
+      ["Lá", "A1 D2 G2 C3 E3 A3"]
+    ]},
+    { nome: "Violão 12 cordas", afin: [
+      ["Padrão", "E2 A2 D3 G3 B3 E4"],
+      ["Meio tom abaixo", "Eb2 Ab2 Db3 Gb3 Bb3 Eb4"]
+    ]},
+    { nome: "Baixo · 4 cordas", afin: [
+      ["Padrão", "E1 A1 D2 G2"],
+      ["Meio tom abaixo", "Eb1 Ab1 Db2 Gb2"],
+      ["Um tom abaixo", "D1 G1 C2 F2"],
+      ["Drop D", "D1 A1 D2 G2"],
+      ["Drop C", "C1 G1 C2 F2"],
+      ["BEAD", "B0 E1 A1 D2"],
+      ["Tenor (ADGC)", "A1 D2 G2 C3"]
+    ]},
+    { nome: "Baixo · 5 cordas", afin: [
+      ["Padrão (Si grave)", "B0 E1 A1 D2 G2"],
+      ["Dó agudo", "E1 A1 D2 G2 C3"],
+      ["Meio tom abaixo", "Bb0 Eb1 Ab1 Db2 Gb2"]
+    ]},
+    { nome: "Baixo · 6 cordas", afin: [
+      ["Padrão", "B0 E1 A1 D2 G2 C3"]
+    ]},
+    { nome: "Contrabaixo acústico", afin: [
+      ["Orquestra", "E1 A1 D2 G2"],
+      ["Solo", "F#1 B1 E2 A2"]
+    ]},
+    { nome: "Cavaquinho", afin: [
+      ["Padrão (DGBD)", "D4 G4 B4 D5"],
+      ["Natural (DGBE)", "D4 G4 B4 E5"]
+    ]},
+    { nome: "Ukulele", afin: [
+      ["Padrão (GCEA)", "G4 C4 E4 A4"],
+      ["Sol grave", "G3 C4 E4 A4"],
+      ["Ré (ADF#B)", "A4 D4 F#4 B4"],
+      ["Barítono", "D3 G3 B3 E4"]
+    ]},
+    { nome: "Viola caipira", afin: [
+      ["Cebolão em Ré", "A2 D3 F#3 A3 D4"],
+      ["Cebolão em Mi", "B2 E3 G#3 B3 E4"],
+      ["Rio Abaixo", "G2 D3 G3 B3 D4"]
+    ]},
+    { nome: "Bandolim", afin: [
+      ["Padrão", "G3 D4 A4 E5"]
+    ]},
+    { nome: "Banjo · 5 cordas", afin: [
+      ["Open G", "G4 D3 G3 B3 D4"],
+      ["Double C", "G4 C3 G3 C4 D4"],
+      ["Open D", "F#4 D3 F#3 A3 D4"]
+    ]},
+    { nome: "Banjo tenor", afin: [
+      ["Padrão (CGDA)", "C3 G3 D4 A4"],
+      ["Irlandês (GDAE)", "G2 D3 A3 E4"]
+    ]},
+    { nome: "Bouzouki irlandês", afin: [
+      ["GDAD", "G2 D3 A3 D4"],
+      ["GDAE", "G2 D3 A3 E4"]
+    ]},
+    { nome: "Violino", afin: [
+      ["Padrão", "G3 D4 A4 E5"]
+    ]},
+    { nome: "Viola de arco", afin: [
+      ["Padrão", "C3 G3 D4 A4"]
+    ]},
+    { nome: "Violoncelo", afin: [
+      ["Padrão", "C2 G2 D3 A3"]
+    ]}
+  ];
+  const PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  const midiDe = s => { const m = /^([A-G])([#b]?)(-?\d)$/.exec(s); return 12 * (+m[3] + 1) + PC[m[1]] + (m[2] === "#" ? 1 : m[2] === "b" ? -1 : 0); };
+  const rotuloDe = s => s.replace(/-?\d$/, "").replace("#", "♯").replace("b", "♭");
+
+  // ---- ajustes guardados neste aparelho ----
+  const PADRAO = { tema: "claro", ref: 440, inst: 0, afin: 0 };
+  let cfg = { ...PADRAO };
+  try { Object.assign(cfg, JSON.parse(localStorage.getItem("alvo-ajustes") || "{}")); } catch (e) {}
+  if (!INSTRUMENTOS[cfg.inst]) cfg.inst = 0;
+  if (!INSTRUMENTOS[cfg.inst].afin[cfg.afin]) cfg.afin = 0;
+  cfg.ref = Math.max(415, Math.min(466, Math.round(cfg.ref) || 440));
+  const salvar = () => { try { localStorage.setItem("alvo-ajustes", JSON.stringify(cfg)); } catch (e) {} };
+
+  // ---- o mesmo motor do Nedle: McLeod (NSDF) com interpolação, mediana, histerese de nota e faixa de afinado de ±3 cents ----
+  let F_MIN = 38; const F_MAX = 1400;
   const SENS = 0.0018, CLAREZA = 0.6, ESTAB = 5, FAIXA = 3, SILENCIO_MS = 420;
   const fmt = n => n.toFixed(1).replace(".", ",");
-  const hzDe = m => REF * Math.pow(2, (m - 69) / 12);
+  const hzDe = m => cfg.ref * Math.pow(2, (m - 69) / 12);
 
   const janelaEl = document.getElementById("janela"), elAlvo = document.getElementById("alvo"), elAtual = document.getElementById("atual"), elAviso = document.getElementById("aviso");
 
@@ -166,7 +386,7 @@ body { background: var(--panel); color: var(--ink); -webkit-tap-highlight-color:
     analyser.getFloatTimeDomainData(buf);
     const f = detectar(buf, actx.sampleRate);
     if (f) {
-      const m = 69 + 12 * Math.log2(f / REF);
+      const m = 69 + 12 * Math.log2(f / cfg.ref);
       if (leituras.length && Math.abs(m - leituras[leituras.length - 1]) > 0.8) leituras.length = 0; // outra corda: responde na hora
       leituras.push(m); while (leituras.length > ESTAB) leituras.shift();
       const med = mediana(leituras);
@@ -213,34 +433,54 @@ body { background: var(--panel); color: var(--ink); -webkit-tap-highlight-color:
     else iniciar();
   });
   document.addEventListener("gesturestart", e => e.preventDefault());
-  document.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
+  document.addEventListener("touchmove", e => { if (!e.target.closest || !e.target.closest(".gaveta")) e.preventDefault(); }, { passive: false });
   document.addEventListener("contextmenu", e => e.preventDefault());
 
-  // corda a corda: com uma corda escolhida, o alvo fica travado nela; sem nenhuma, é cromático
-  let travada = null;
+  // ---- cordas do instrumento escolhido; com uma escolhida, o alvo fica travado nela; sem nenhuma, é cromático ----
+  const elCordas = document.getElementById("cordas"), elInstr = document.getElementById("instr");
+  let cordas = [];       // [{midi, rotulo}]
+  let travada = null;    // índice da corda travada
   let ultimoToque = 0;
-  document.querySelectorAll(".corda").forEach(b => b.addEventListener("click", () => {
-    const agora = performance.now();
-    if (agora - ultimoToque < 350) return; // o app do Claude no iPhone às vezes entrega o mesmo toque duas vezes
-    ultimoToque = agora;
-    const m = +b.dataset.midi;
-    travada = travada === m && b.getAttribute("aria-pressed") === "true" ? null : m;
-    document.querySelectorAll(".corda").forEach(x => x.setAttribute("aria-pressed", String(x === b && travada !== null)));
+  function montarCordas() {
+    const [nomeAfin, notas] = INSTRUMENTOS[cfg.inst].afin[cfg.afin];
+    cordas = notas.split(" ").map(s => ({ midi: midiDe(s), rotulo: rotuloDe(s), nome: s }));
+    // o detector desce até a corda mais grave
+    F_MIN = Math.min(38, ...cordas.map(c => 440 * Math.pow(2, (c.midi - 69) / 12) * 0.85));
+    elCordas.style.setProperty("--n", cordas.length);
+    elCordas.replaceChildren(...cordas.map((c, i) => {
+      const b = document.createElement("button");
+      b.className = "corda"; b.setAttribute("aria-pressed", "false");
+      b.setAttribute("aria-label", `Corda ${cordas.length - i}: ${c.nome.replace("#", " sustenido").replace("b", " bemol")}`);
+      b.innerHTML = `<span>${c.rotulo}</span>`;
+      b.addEventListener("click", () => {
+        const agora = performance.now();
+        if (agora - ultimoToque < 350) return; // o app do Claude no iPhone às vezes entrega o mesmo toque duas vezes
+        ultimoToque = agora;
+        travar(travada === i ? null : i);
+      });
+      return b;
+    }));
+    elInstr.textContent = `${INSTRUMENTOS[cfg.inst].nome.split(" · ")[0]} · ${nomeAfin}`;
+    travar(null);
+  }
+  function travar(i) {
+    travada = i;
+    [...elCordas.children].forEach((x, k) => x.setAttribute("aria-pressed", String(k === i)));
     notaMostrada = null; afinadoDesde = null; foraDesde = null; firmeAntes = false;
-    if (modo === "demo") { dCorda = travada !== null ? CORDAS.indexOf(m) : dCorda; dT0 = performance.now(); dFase = "afinando"; }
-  }));
+    if (modo === "demo") { if (i !== null) dCorda = i; dT0 = performance.now(); dFase = "afinando"; }
+  }
 
-  // demonstração: as seis cordas do violão, cada uma chegando no tom
-  const CORDAS = [40, 45, 50, 55, 59, 64];
+  // ---- demonstração: as cordas do instrumento escolhido, cada uma chegando no tom ----
   let dCorda = 0, dFase = "afinando", dT0 = performance.now(), dDesvio = -30;
   function demo(agora) {
     const t = (agora - dT0) / 1000; let c;
+    if (dCorda >= cordas.length) dCorda = 0;
     if (dFase === "afinando") { c = dDesvio * Math.max(0, 1 - t / 3.2) + (Math.random() - .5) * 1.2; if (t > 3.4) { dFase = "afinado"; dT0 = agora; } }
-    else { c = (Math.random() - .5) * .8; if (t > 1.8) { if (travada === null) dCorda = (dCorda + 1) % CORDAS.length; dDesvio = (Math.random() < .5 ? -1 : 1) * (18 + Math.random() * 30); dT0 = agora; dFase = "afinando"; } }
-    notaMidi = CORDAS[dCorda]; mSuave = notaMidi + c / 100; parado = false;
+    else { c = (Math.random() - .5) * .8; if (t > 1.8) { if (travada === null) dCorda = (dCorda + 1) % cordas.length; dDesvio = (Math.random() < .5 ? -1 : 1) * (18 + Math.random() * 30); dT0 = agora; dFase = "afinando"; } }
+    notaMidi = cordas[dCorda].midi; mSuave = notaMidi + c / 100; parado = false;
   }
 
-  // toque tátil ao afinar (Android: vibração; iPhone: o interruptor escondido)
+  // ---- toque tátil ao afinar (Android: vibração; iPhone: o interruptor escondido) ----
   const tatil = document.createElement("label");
   tatil.innerHTML = '<input type="checkbox" switch>';
   tatil.style.cssText = "position:fixed;left:-9999px;width:1px;height:1px;overflow:hidden";
@@ -252,7 +492,7 @@ body { background: var(--panel); color: var(--ink); -webkit-tap-highlight-color:
     try { tatil.click(); } catch (e) {}
   }
 
-  // o número de baixo anda com peso (como a agulha), para os décimos não piscarem
+  // ---- o número de baixo anda com peso (como a agulha), para os décimos não piscarem ----
   let mostrado = null, notaMostrada = null, ultimo = performance.now(), ultimoTexto = 0;
   let afinadoDesde = null, foraDesde = null, firmeAntes = false;
   function passo(agora) {
@@ -262,12 +502,12 @@ body { background: var(--panel); color: var(--ink); -webkit-tap-highlight-color:
 
     if (travada !== null && (notaMidi === null || mSuave === null)) {
       // corda escolhida e nada tocado ainda: o alvo já aparece
-      elAlvo.innerHTML = `${fmt(hzDe(travada))}<small>Hz</small>`;
+      elAlvo.innerHTML = `${fmt(hzDe(cordas[travada].midi))}<small>Hz</small>`;
       elAtual.textContent = "—";
       janelaEl.classList.remove("afinado"); janelaEl.classList.add("parado");
     }
     if (notaMidi !== null && mSuave !== null) {
-      const alvoM = travada !== null ? travada : notaMidi; // travado: compara sempre com a corda escolhida
+      const alvoM = travada !== null ? cordas[travada].midi : notaMidi; // travado: compara sempre com a corda escolhida
       const cents = (mSuave - alvoM) * 100;
       if (alvoM !== notaMostrada) { notaMostrada = alvoM; mostrado = mSuave; afinadoDesde = null; foraDesde = null; }
       if (!parado) {
@@ -291,6 +531,56 @@ body { background: var(--panel); color: var(--ink); -webkit-tap-highlight-color:
     }
     requestAnimationFrame(passo);
   }
+
+  // ---- ajustes ----
+  const gaveta = document.getElementById("gaveta"), veu = document.getElementById("veu");
+  const selInst = document.getElementById("sel-inst"), selAfin = document.getElementById("sel-afin");
+  let abertaEm = 0;
+  function abrir(v) {
+    gaveta.hidden = veu.hidden = !v; abertaEm = v ? performance.now() : 0;
+    if (v) document.getElementById("fechar").focus({ preventScroll: true });
+    else document.getElementById("abrir").focus({ preventScroll: true });
+  }
+  document.getElementById("abrir").addEventListener("click", () => abrir(true));
+  document.getElementById("fechar").addEventListener("click", () => abrir(false));
+  veu.addEventListener("click", () => { if (performance.now() - abertaEm > 400) abrir(false); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !gaveta.hidden) abrir(false); });
+
+  function aplicarTema() {
+    document.documentElement.setAttribute("data-tema", cfg.tema);
+    document.querySelectorAll(".tecla[data-tema]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tema === cfg.tema)));
+  }
+  document.querySelectorAll(".tecla[data-tema]").forEach(b => b.addEventListener("click", () => { cfg.tema = b.dataset.tema; aplicarTema(); salvar(); }));
+
+  const refNum = document.getElementById("ref-num");
+  function mudarRef(d) { cfg.ref = Math.max(415, Math.min(466, cfg.ref + d)); refNum.textContent = cfg.ref; salvar(); }
+  // toque muda 1 Hz; segurando, repete
+  [["ref-menos", -1], ["ref-mais", 1]].forEach(([id, d]) => {
+    const b = document.getElementById(id); let t1 = null, t2 = null, ultimo = 0;
+    const parar = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = null; };
+    b.addEventListener("pointerdown", e => {
+      e.preventDefault(); const agora = performance.now(); if (agora - ultimo < 120) return; ultimo = agora;
+      mudarRef(d); parar(); t1 = setTimeout(() => { t2 = setInterval(() => mudarRef(d), 90); }, 450);
+    });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(ev => b.addEventListener(ev, parar));
+    b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); mudarRef(d); } });
+  });
+
+  function preencherAfinacoes() {
+    selAfin.replaceChildren(...INSTRUMENTOS[cfg.inst].afin.map(([nome, notas], i) => {
+      const o = document.createElement("option"); o.value = i; o.textContent = `${nome} — ${notas.split(" ").map(rotuloDe).join(" ")}`; return o;
+    }));
+    selAfin.value = cfg.afin;
+  }
+  selInst.replaceChildren(...INSTRUMENTOS.map((ins, i) => { const o = document.createElement("option"); o.value = i; o.textContent = ins.nome; return o; }));
+  selInst.value = cfg.inst;
+  selInst.addEventListener("change", () => { cfg.inst = +selInst.value; cfg.afin = 0; preencherAfinacoes(); montarCordas(); salvar(); });
+  selAfin.addEventListener("change", () => { cfg.afin = +selAfin.value; montarCordas(); salvar(); });
+
+  aplicarTema();
+  refNum.textContent = cfg.ref;
+  preencherAfinacoes();
+  montarCordas();
   iniciar();
   requestAnimationFrame(passo);
 })();
