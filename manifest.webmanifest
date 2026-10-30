@@ -1,6 +1,6 @@
 {
-  "name": "Alvo",
-  "short_name": "Alvo",
+  "name": "440 Hz",
+  "short_name": "440 Hz",
   "description": "Afinador de dois números: o alvo em Hz e onde a corda está.",
   "lang": "pt-BR",
   "start_url": "./",
