@@ -72,14 +72,15 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
    A parte inteira é enorme; a casa decimal fica pequena no alto, com o Hz embaixo dela, como um preço de vitrine. */
 .janela { position: relative; width: 100%; display: grid; justify-items: center; align-content: center; gap: 4px; container-type: inline-size; }
 .num { position: relative; display: flex; align-items: flex-start; white-space: nowrap; line-height: .8; font-variant-numeric: tabular-nums; transition: opacity .35s ease; }
-.num .int { font-family: var(--f-display); font-weight: 800; font-stretch: 100%; letter-spacing: -.045em; }
+/* números um pouco estreitados: ganham altura sem parecer espremidos */
+.num .int { font-family: var(--f-display); font-weight: 800; font-stretch: 72%; letter-spacing: -.03em; }
 .num .lado { display: grid; align-content: space-between; align-self: stretch; margin-left: .04em; }
-.num .dec { font-family: var(--f-display); font-weight: 800; font-stretch: 100%; font-size: .42em; line-height: .8; letter-spacing: -.03em; }
+.num .dec { font-family: var(--f-display); font-weight: 800; font-stretch: 72%; font-size: .42em; line-height: .8; letter-spacing: -.02em; }
 .num small { font-family: var(--f-mono); font-weight: 500; font-size: 14px; letter-spacing: .04em; color: var(--ink-2); line-height: 1; padding-left: .2em; }
-.atual { font-size: min(300px, 46cqw); color: var(--ink); }
-.atual.longo { font-size: min(240px, 36cqw); }
-.alvo { font-size: min(130px, 21cqw); color: var(--ink-2); align-items: flex-end; }
-.alvo .nome { font-family: var(--f-display); font-weight: 800; font-stretch: 100%; font-size: .8em; line-height: .8; letter-spacing: -.03em; color: var(--ink); margin-right: .16em; align-self: flex-end; }
+.atual { font-size: min(380px, 56cqw); color: var(--ink); }
+.atual.longo { font-size: min(300px, 44cqw); }
+.alvo { font-size: min(170px, 27cqw); color: var(--ink-2); align-items: flex-end; }
+.alvo .nome { font-family: var(--f-display); font-weight: 800; font-stretch: 85%; font-size: .8em; line-height: .8; letter-spacing: -.03em; color: var(--ink); margin-right: .16em; align-self: flex-end; }
 .alvo .nome sub { font-family: var(--f-mono); font-weight: 500; font-size: .3em; vertical-align: baseline; margin-left: .04em; color: var(--ink-2); }
 .alvo .lado { align-self: stretch; }
 /* afinou: a tela inteira acende de uma vez, sem fade */
