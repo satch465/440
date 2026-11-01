@@ -97,6 +97,10 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
 .alvo .marca { display: inline-grid; grid-template-rows: auto auto; align-content: space-between; height: .69em; margin-top: .044em; margin-left: .03em; }
 .alvo .marca sup, .alvo .marca sub { font-family: var(--f-display); font-weight: 700; font-stretch: 85%; font-size: .3em; line-height: 1; vertical-align: baseline; color: var(--ink-2); }
 .alvo .marca sup { color: var(--ink); font-weight: 800; }
+/* oitava apoiada na linha de base da nota (desce o que sobra da caixa da letra pequena) */
+.alvo .marca sub { position: relative; top: .167em; }
+/* letra numa caixa da largura da mais larga (A–G): sustenido e oitava ficam sempre no mesmo lugar */
+.alvo .letra { display: inline-block; width: var(--wl, auto); }
 /* afinou: a tela inteira acende de uma vez, sem fade */
 /* afinou: só os números mudam de cor, na hora */
 .janela.afinado .atual, .janela.afinado .alvo .int, .janela.afinado .alvo .dec { color: var(--num-afinado); }
@@ -511,7 +515,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
   // alvo: nome da nota (com a oitava pequena) antes do número
   function alvoHtml(m) {
     const nome = travada !== null && cordas[travada].midi === m ? cordas[travada].rotulo : NOMES[((m % 12) + 12) % 12];
-    return `<span class="nome">${nome[0]}<span class="marca"><sup>${nome.slice(1) || "&nbsp;"}</sup><sub>${Math.floor(m / 12) - 1}</sub></span></span>${partes(hzDe(m))}`;
+    return `<span class="nome"><span class="letra">${nome[0]}</span><span class="marca"><sup>${nome.slice(1) || "&nbsp;"}</sup><sub>${Math.floor(m / 12) - 1}</sub></span></span>${partes(hzDe(m))}`;
   }
   // tamanho dos números: fixo, calculado uma vez para um valor de três algarismos ocupar a largura toda;
   // com dois algarismos o tamanho não muda. Só se recalcula ao girar a tela ou trocar o tamanho da janela.
@@ -524,11 +528,13 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
     const wAtual = medir("num atual", partes(388.8));
     const wAlvo = medir("num alvo", partes(388.8));
     const wNota = medir("num alvo", '<span class="nome" style="font-size:100px;margin:0">A<span class="marca"><sup>♯</sup><sub>3</sub></span></span>');
+    // largura da letra mais larga, para a oitava não andar de uma nota para outra
+    const wLetra = Math.max(...[..."ABCDEFG"].map(l => medir("num alvo", `<span class="nome" style="font-size:100px;margin:0">${l}</span>`)));
     const fs = Math.min(560, innerHeight * 0.42, 100 * (W - 2) / wAtual);
     const fa = Math.min(fs * .7, 100 * (W * .58) / wAlvo);
-    const fn = Math.min(fs, 100 * (W * .39) / wNota);
+    const fn = Math.min(fs, 100 * (W * .39) / (wNota + wLetra - medir("num alvo", '<span class="nome" style="font-size:100px;margin:0">A</span>')));
     const st = janelaEl.style;
-    st.setProperty("--fs", fs.toFixed(1) + "px"); st.setProperty("--fa", fa.toFixed(1) + "px"); st.setProperty("--fn", fn.toFixed(1) + "px");
+    st.setProperty("--fs", fs.toFixed(1) + "px"); st.setProperty("--fa", fa.toFixed(1) + "px"); st.setProperty("--fn", fn.toFixed(1) + "px"); st.setProperty("--wl", (wLetra * fn / 100).toFixed(1) + "px");
     // nota e alvo na mesma linha de base (base da Archivo a .734 da caixa)
     st.setProperty("--dn", (Math.max(0, fa - fn) * .734).toFixed(1) + "px");
     st.setProperty("--da", (Math.max(0, fn - fa) * .734).toFixed(1) + "px");
