@@ -84,9 +84,13 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
 /* o tamanho (--fs) é calculado para os números ocuparem a largura toda */
 .atual { font-size: var(--fs); color: var(--ink); }
 .alvo { font-size: calc(var(--fs) * .49); color: var(--ink-2); align-items: flex-end; }
-.alvo .nome { font-family: var(--f-display); font-weight: 800; font-stretch: 85%; font-size: .8em; line-height: .8; letter-spacing: -.03em; color: var(--ink); margin-right: .16em; align-self: flex-end; }
+.alvo .nome { font-family: var(--f-display); font-weight: 800; font-stretch: 85%; font-size: var(--fs); /* nota do tamanho do número de baixo */ line-height: .8; letter-spacing: -.03em; color: var(--ink); margin-right: .07em; align-self: flex-end; }
 .alvo .nome sub { font-family: var(--f-mono); font-weight: 500; font-size: .3em; vertical-align: baseline; margin-left: .04em; color: var(--ink-2); }
-.alvo .lado { align-self: stretch; }
+.alvo .lado { align-self: flex-end; height: .8em; }
+/* sustenido/bemol em cima e oitava embaixo, empilhados ao lado da letra, para a nota grande caber na largura */
+.alvo .marca { display: inline-grid; grid-template-rows: auto auto; align-content: space-between; height: .8em; margin-left: .03em; vertical-align: bottom; }
+.alvo .marca sup, .alvo .marca sub { font-family: var(--f-display); font-weight: 700; font-stretch: 85%; font-size: .3em; line-height: 1; vertical-align: baseline; color: var(--ink-2); }
+.alvo .marca sup { color: var(--ink); font-weight: 800; }
 /* afinou: a tela inteira acende de uma vez, sem fade */
 /* afinou: só os números mudam de cor, na hora */
 .janela.afinado .atual, .janela.afinado .alvo .int, .janela.afinado .alvo .dec { color: var(--num-afinado); }
@@ -501,7 +505,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
   // alvo: nome da nota (com a oitava pequena) antes do número
   function alvoHtml(m) {
     const nome = travada !== null && cordas[travada].midi === m ? cordas[travada].rotulo : NOMES[((m % 12) + 12) % 12];
-    return `<span class="nome">${nome}<sub>${Math.floor(m / 12) - 1}</sub></span>${partes(hzDe(m))}`;
+    return `<span class="nome">${nome[0]}<span class="marca"><sup>${nome.slice(1) || "&nbsp;"}</sup><sub>${Math.floor(m / 12) - 1}</sub></span></span>${partes(hzDe(m))}`;
   }
   // tamanho dos números: fixo, calculado uma vez para um valor de três algarismos ocupar a largura toda;
   // com dois algarismos o tamanho não muda. Só se recalcula ao girar a tela ou trocar o tamanho da janela.
@@ -511,7 +515,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
     const teste = document.createElement("div"), alvoT = document.createElement("div");
     teste.className = "num atual"; alvoT.className = "num alvo";
     teste.style.cssText = alvoT.style.cssText = "position:absolute;visibility:hidden;left:0;top:0";
-    teste.innerHTML = partes(388.8); alvoT.innerHTML = `<span class="nome">A♯<sub>3</sub></span>${partes(388.8)}`;
+    teste.innerHTML = partes(388.8); alvoT.innerHTML = `<span class="nome">A<span class="marca"><sup>♯</sup><sub>3</sub></span></span>${partes(388.8)}`;
     let fs = Math.min(380, W * 0.9, innerHeight * 0.36);
     janelaEl.style.setProperty("--fs", fs.toFixed(1) + "px");
     janelaEl.append(teste, alvoT);
