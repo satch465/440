@@ -83,8 +83,8 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
 .num small { font-family: var(--f-mono); font-weight: 500; font-size: 14px; letter-spacing: .04em; color: var(--ink-2); line-height: 1; padding-left: .2em; }
 /* o tamanho (--fs) é calculado para os números ocuparem a largura toda */
 .atual { font-size: var(--fs); color: var(--ink); }
-.alvo { font-size: calc(var(--fs) * .49); color: var(--ink-2); align-items: flex-end; }
-.alvo .nome { font-family: var(--f-display); font-weight: 800; font-stretch: 85%; font-size: var(--fn, var(--fs)); /* nota do tamanho do número de baixo (menor só se não couber) */ line-height: .8; letter-spacing: -.03em; color: var(--ink); margin-right: .07em; align-self: flex-end; }
+.alvo { justify-self: stretch; font-size: calc(var(--fs) * .49); color: var(--ink-2); align-items: flex-end; }
+.alvo .nome { font-family: var(--f-display); font-weight: 800; font-stretch: 85%; font-size: var(--fn, var(--fs)); /* nota do tamanho do número de baixo (menor só se não couber) */ line-height: .8; letter-spacing: -.03em; color: var(--ink); margin-right: auto; /* nota presa na borda esquerda; os números do alvo ficam na coluna da vírgula, à direita */ align-self: flex-end; }
 .alvo .nome sub { font-family: var(--f-mono); font-weight: 500; font-size: .3em; vertical-align: baseline; margin-left: .04em; color: var(--ink-2); }
 .alvo .lado { align-self: flex-end; height: .8em; }
 /* sustenido/bemol em cima e oitava embaixo, empilhados ao lado da letra, para a nota grande caber na largura */
