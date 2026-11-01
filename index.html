@@ -503,17 +503,29 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
     const nome = travada !== null && cordas[travada].midi === m ? cordas[travada].rotulo : NOMES[((m % 12) + 12) % 12];
     return `<span class="nome">${nome}<sub>${Math.floor(m / 12) - 1}</sub></span>${partes(hzDe(m))}`;
   }
-  // tamanho dos números: o maior possível sem passar da largura; recalcula só ao trocar de nota ou de quantidade de algarismos
-  let fitAlvo = null, fitDig = 0;
+  // tamanho dos números: fixo, calculado uma vez para um valor de três algarismos ocupar a largura toda;
+  // com dois algarismos o tamanho não muda. Só se recalcula ao girar a tela ou trocar o tamanho da janela.
+  let fsBase = null;
   function ajustar() {
     const W = janelaEl.clientWidth; if (!W) return;
+    const teste = document.createElement("div"), alvoT = document.createElement("div");
+    teste.className = "num atual"; alvoT.className = "num alvo";
+    teste.style.cssText = alvoT.style.cssText = "position:absolute;visibility:hidden;left:0;top:0";
+    teste.innerHTML = partes(388.8); alvoT.innerHTML = `<span class="nome">A♯<sub>3</sub></span>${partes(388.8)}`;
     let fs = Math.min(380, W * 0.9, innerHeight * 0.36);
     janelaEl.style.setProperty("--fs", fs.toFixed(1) + "px");
-    const usado = Math.max(elAlvo.scrollWidth, elAtual.scrollWidth);
-    if (usado > W - 2) { fs *= (W - 2) / usado; janelaEl.style.setProperty("--fs", fs.toFixed(1) + "px"); }
+    janelaEl.append(teste, alvoT);
+    const usado = Math.max(teste.scrollWidth, alvoT.scrollWidth);
+    teste.remove(); alvoT.remove();
+    if (usado > W - 2) fs *= (W - 2) / usado;
+    fsBase = fs; janelaEl.style.setProperty("--fs", fs.toFixed(1) + "px");
   }
-  addEventListener("resize", () => { fitAlvo = null; });
-  if (document.fonts) document.fonts.ready.then(() => { fitAlvo = null; });
+  let fitDig = 0;
+  // acima de 999 Hz (quatro algarismos, raro) diminui só enquanto durar
+  function quatro(dig) { if (fsBase && dig !== fitDig) { fitDig = dig; janelaEl.style.setProperty("--fs", (dig >= 4 ? fsBase * .78 : fsBase).toFixed(1) + "px"); } }
+  addEventListener("resize", () => requestAnimationFrame(ajustar));
+  if (document.fonts) document.fonts.ready.then(ajustar);
+  requestAnimationFrame(ajustar);
   // ---- o número de baixo anda com peso (como a agulha), para os décimos não piscarem ----
   let hzExibido = null, mostrado = null, notaMostrada = null, ultimo = performance.now(), ultimoTexto = 0;
   let afinadoDesde = null, foraDesde = null, firmeAntes = false;
@@ -551,8 +563,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
         // histerese: o décimo só troca quando a leitura passa com folga para o próximo valor, sem piscar entre dois
         const hzA = hzDe(mostrado);
         if (hzExibido === null || Math.abs(hzA - hzExibido) >= 0.08) { hzExibido = Math.round(hzA * 10) / 10; elAtual.innerHTML = partes(hzExibido); }
-        const dig = String(Math.floor(hzExibido)).length;
-        if (alvoM !== fitAlvo || dig !== fitDig) { fitAlvo = alvoM; fitDig = dig; ajustar(); }
+        quatro(String(Math.floor(hzExibido)).length);
       }
     }
     requestAnimationFrame(passo);
