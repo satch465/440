@@ -84,7 +84,7 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
 /* o tamanho (--fs) é calculado para os números ocuparem a largura toda */
 .atual { font-size: var(--fs); color: var(--ink); }
 .alvo { font-size: calc(var(--fs) * .49); color: var(--ink-2); align-items: flex-end; }
-.alvo .nome { font-family: var(--f-display); font-weight: 800; font-stretch: 85%; font-size: var(--fs); /* nota do tamanho do número de baixo */ line-height: .8; letter-spacing: -.03em; color: var(--ink); margin-right: .07em; align-self: flex-end; }
+.alvo .nome { font-family: var(--f-display); font-weight: 800; font-stretch: 85%; font-size: var(--fn, var(--fs)); /* nota do tamanho do número de baixo (menor só se não couber) */ line-height: .8; letter-spacing: -.03em; color: var(--ink); margin-right: .07em; align-self: flex-end; }
 .alvo .nome sub { font-family: var(--f-mono); font-weight: 500; font-size: .3em; vertical-align: baseline; margin-left: .04em; color: var(--ink-2); }
 .alvo .lado { align-self: flex-end; height: .8em; }
 /* sustenido/bemol em cima e oitava embaixo, empilhados ao lado da letra, para a nota grande caber na largura */
@@ -519,10 +519,16 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
     let fs = Math.min(380, W * 0.9, innerHeight * 0.36);
     janelaEl.style.setProperty("--fs", fs.toFixed(1) + "px");
     janelaEl.append(teste, alvoT);
-    const usado = Math.max(teste.scrollWidth, alvoT.scrollWidth);
-    teste.remove(); alvoT.remove();
+    // o número de baixo manda: com três algarismos ele ocupa a largura toda
+    janelaEl.style.removeProperty("--fn");
+    const usado = teste.scrollWidth;
     if (usado > W - 2) fs *= (W - 2) / usado;
-    fsBase = fs; janelaEl.style.setProperty("--fs", fs.toFixed(1) + "px");
+    janelaEl.style.setProperty("--fs", fs.toFixed(1) + "px");
+    // a nota do alvo só diminui se a linha de cima não couber
+    const sobra = alvoT.scrollWidth - (W - 2);
+    if (sobra > 0) { const nomeW = alvoT.querySelector(".nome").getBoundingClientRect().width; janelaEl.style.setProperty("--fn", (fs * Math.max(.5, (nomeW - sobra) / nomeW)).toFixed(1) + "px"); }
+    teste.remove(); alvoT.remove();
+    fsBase = fs;
   }
   let fitDig = 0;
   // acima de 999 Hz (quatro algarismos, raro) diminui só enquanto durar
