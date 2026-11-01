@@ -71,17 +71,19 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
 /* sem janela: os números ficam soltos no painel, grandes, em Archivo bem condensado.
    A parte inteira é enorme; a casa decimal fica pequena no alto, com o Hz embaixo dela, como um preço de vitrine. */
 /* números alinhados à direita: alvo e leitura dividem a coluna da vírgula, então trocar de 2 para 3 algarismos não desloca nada */
-.janela { position: relative; width: 100%; display: grid; justify-items: end; align-content: center; gap: 6px; container-type: inline-size; --lado: 16cqw; }
+.janela { position: relative; width: 100%; display: grid; justify-items: end; align-content: center; gap: 6px; container-type: inline-size; --fs: min(380px, 55cqw); }
 /* algarismos de largura igual e caixas fechadas: trocar um número não empurra nada; cor e opacidade ficam na GPU */
-.num { position: relative; display: flex; align-items: flex-start; white-space: nowrap; line-height: .8; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; transition: opacity .35s ease; will-change: opacity; contain: layout paint style; }
+.num { position: relative; display: flex; align-items: flex-start; white-space: nowrap; line-height: .8; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; transition: opacity .35s ease; will-change: opacity; contain: layout style; }
 /* números um pouco estreitados: ganham altura sem parecer espremidos */
 .num .int { font-family: var(--f-display); font-weight: 800; font-stretch: 72%; letter-spacing: -.03em; }
-.num .lado { display: grid; align-content: space-between; align-self: stretch; width: var(--lado); padding-left: 1cqw; box-sizing: border-box; }
+.num .lado { display: grid; align-content: space-between; align-self: stretch; width: calc(var(--fs) * .34); padding-left: calc(var(--fs) * .02); box-sizing: border-box; }
+/* a centena só muda ao trocar de corda: largura natural, sem a sobra do "1" */
+.num .c { font-variant-numeric: proportional-nums; font-feature-settings: "pnum" 1; }
 .num .dec { font-family: var(--f-display); font-weight: 800; font-stretch: 72%; font-size: .42em; line-height: .8; letter-spacing: -.02em; }
 .num small { font-family: var(--f-mono); font-weight: 500; font-size: 14px; letter-spacing: .04em; color: var(--ink-2); line-height: 1; padding-left: .2em; }
-.atual { font-size: min(380px, 55cqw); color: var(--ink); }
-.atual.longo { font-size: min(300px, 44cqw); }
-.alvo { font-size: min(170px, 27cqw); color: var(--ink-2); align-items: flex-end; }
+/* o tamanho (--fs) é calculado para os números ocuparem a largura toda */
+.atual { font-size: var(--fs); color: var(--ink); }
+.alvo { font-size: calc(var(--fs) * .49); color: var(--ink-2); align-items: flex-end; }
 .alvo .nome { font-family: var(--f-display); font-weight: 800; font-stretch: 85%; font-size: .8em; line-height: .8; letter-spacing: -.03em; color: var(--ink); margin-right: .16em; align-self: flex-end; }
 .alvo .nome sub { font-family: var(--f-mono); font-weight: 500; font-size: .3em; vertical-align: baseline; margin-left: .04em; color: var(--ink-2); }
 .alvo .lado { align-self: stretch; }
@@ -493,13 +495,25 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
   // número em duas partes: inteira grande, decimal pequena no alto com o Hz embaixo
   function partes(hz) {
     const [i, d] = fmt(hz).split(",");
-    return `<span class="int">${i}</span><span class="lado"><span class="dec">,${d}</span><small>Hz</small></span>`;
+    const int = i.length >= 3 ? `<span class="c">${i.slice(0, -2)}</span>${i.slice(-2)}` : i;
+    return `<span class="int">${int}</span><span class="lado"><span class="dec">,${d}</span><small>Hz</small></span>`;
   }
   // alvo: nome da nota (com a oitava pequena) antes do número
   function alvoHtml(m) {
     const nome = travada !== null && cordas[travada].midi === m ? cordas[travada].rotulo : NOMES[((m % 12) + 12) % 12];
     return `<span class="nome">${nome}<sub>${Math.floor(m / 12) - 1}</sub></span>${partes(hzDe(m))}`;
   }
+  // tamanho dos números: o maior possível sem passar da largura; recalcula só ao trocar de nota ou de quantidade de algarismos
+  let fitAlvo = null, fitDig = 0;
+  function ajustar() {
+    const W = janelaEl.clientWidth; if (!W) return;
+    let fs = Math.min(380, W * 0.9, innerHeight * 0.36);
+    janelaEl.style.setProperty("--fs", fs.toFixed(1) + "px");
+    const usado = Math.max(elAlvo.scrollWidth, elAtual.scrollWidth);
+    if (usado > W - 2) { fs *= (W - 2) / usado; janelaEl.style.setProperty("--fs", fs.toFixed(1) + "px"); }
+  }
+  addEventListener("resize", () => { fitAlvo = null; });
+  if (document.fonts) document.fonts.ready.then(() => { fitAlvo = null; });
   // ---- o número de baixo anda com peso (como a agulha), para os décimos não piscarem ----
   let hzExibido = null, mostrado = null, notaMostrada = null, ultimo = performance.now(), ultimoTexto = 0;
   let afinadoDesde = null, foraDesde = null, firmeAntes = false;
@@ -536,7 +550,9 @@ body { background: var(--panel); color: var(--ink); font-family: var(--f-body); 
         elAlvo.innerHTML = alvoHtml(alvoM);
         // histerese: o décimo só troca quando a leitura passa com folga para o próximo valor, sem piscar entre dois
         const hzA = hzDe(mostrado);
-        if (hzExibido === null || Math.abs(hzA - hzExibido) >= 0.08) { hzExibido = Math.round(hzA * 10) / 10; elAtual.classList.toggle("longo", hzExibido >= 999.95); elAtual.innerHTML = partes(hzExibido); }
+        if (hzExibido === null || Math.abs(hzA - hzExibido) >= 0.08) { hzExibido = Math.round(hzA * 10) / 10; elAtual.innerHTML = partes(hzExibido); }
+        const dig = String(Math.floor(hzExibido)).length;
+        if (alvoM !== fitAlvo || dig !== fitDig) { fitAlvo = alvoM; fitDig = dig; ajustar(); }
       }
     }
     requestAnimationFrame(passo);
